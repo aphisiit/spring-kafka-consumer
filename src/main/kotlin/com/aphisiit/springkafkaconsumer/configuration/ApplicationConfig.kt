@@ -2,6 +2,7 @@ package com.aphisiit.springkafkaconsumer.configuration
 
 import com.aphisiit.springkafkaconsumer.common.Foo2
 import com.aphisiit.springkafkaconsumer.model.Student
+import com.aphisiit.springkafkaconsumer.model.Message
 import com.aphisiit.springkafkaconsumer.utils.log.Log
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
@@ -28,7 +29,13 @@ class ApplicationConfig {
 	private val exec: TaskExecutor = SimpleAsyncTaskExecutor()
 
 	@Value(value = "\${spring.kafka.bootstrap-address}")
-	lateinit var bootstrapAddress: String
+	private lateinit var bootstrapAddress: String
+
+	@Value(value = "\${spring.kafka.number-partitions}")
+	private var numPartitions: Int = 1
+
+	@Value(value = "\${spring.kafka.replication-factor}")
+	private var replicationFactor: Int = 1
 
 //	@Autowired
 //	lateinit var template: KafkaTemplate<Any, Any>
@@ -58,9 +65,9 @@ class ApplicationConfig {
 	}
 
 	@KafkaListener(id = "fooGroup", topics = ["topic1"])
-	fun listen(foo: Foo2) {
+	fun listen(foo: Message<Foo2>) {
 		logger.info("Received: $foo")
-		if (foo.foo!!.startsWith("fail")) {
+		if (foo.message.foo!!.startsWith("fail")) {
 			throw RuntimeException("failed")
 		}
 //		exec.execute { println("Hit Enter to terminate...") }
@@ -73,24 +80,24 @@ class ApplicationConfig {
 	}
 
 	@KafkaListener(id = "studentGroup", topics = ["student"])
-	fun studentListen(student: Student) {
-		logger.info("Received from Student: $student")
+	fun studentListen(student: Message<Student>) {
+		logger.info("Received from student: $student")
 //		exec.execute { println("Hit Enter to terminate...") }
 	}
 
 	@Bean
 	fun topic(): NewTopic {
-		return NewTopic("topic1", 1, 1.toShort())
+		return NewTopic("topic1", numPartitions, replicationFactor.toShort())
 	}
 
 	@Bean
 	fun dlt(): NewTopic {
-		return NewTopic("topic1.DLT", 1, 1.toShort())
+		return NewTopic("topic1.DLT", numPartitions, replicationFactor.toShort())
 	}
 
 	@Bean
 	fun student(): NewTopic {
-		return NewTopic("student", 1, 1.toShort())
+		return NewTopic("student", numPartitions, replicationFactor.toShort())
 	}
 
 //	@Bean

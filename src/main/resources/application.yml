@@ -9,3 +9,5 @@ spring:
       value-deserializer: org.apache.kafka.common.serialization.ByteArrayDeserializer
     bootstrap-address: ${KAFKA_BROKER:"localhost:9200"}
     bootstrap-servers: ${KAFKA_BROKER:"localhost:9200"}
+    number-partitions: ${KAFKA_NUMBER_PARTITIONS:3}
+    replication-factor: ${KAFKA_REPLICATION_FACTOR:3}
